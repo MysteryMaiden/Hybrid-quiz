@@ -1,88 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="hybrid-quiz.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Which Hybrid Are You? — Quiz</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f7fa;
-      color: #333;
-      line-height: 1.6;
-      max-width: 800px;
-      margin: auto;
-      padding: 20px;
-    }
-    h1, h2, h3 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    form fieldset {
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-    }
-    legend {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    label {
-      display: block;
-      margin: 5px 0;
-    }
-    button {
-      background-color: #3498db;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      margin: 5px;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
-    #results div {
-      background: #ecf0f1;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-    #results details {
-      background: #fdfdfd;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-    }
-    summary {
-      cursor: pointer;
-      font-weight: bold;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    ul li {
-      padding: 3px 0;
-    }
-    @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      button {
-        width: 100%;
-        margin-top: 10px;
-      }
-    }
-  </style>
 </head>
 <body>
-  <!-- The body and script remain unchanged from the original code -->
+  <h1>Which Hybrid Are You?</h1>
+  <p>Answer all 20 questions to discover your top 3 hybrid matches (Winterbeast, Seabeast, Thunderbeast, Bronzebeast, Emberbeast). No spoilers: just pick what feels most like you.</p>
+
+  <form id="quizForm">
+    <!-- Questions will be injected here -->
+  </form>
+
+  <button id="submitBtn">See My Results</button>
+  <button id="resetBtn" type="button">Reset</button>
+
+  <hr />
+  <div id="results"></div>
+
+  <script>
+    // --- Data model ---------------------------------------------------------
+    // Letter-to-type mapping used consistently across all 20 questions
+    const letterMap = { a: 'winter', b: 'sea', c: 'thunder', d: 'bronze', e: 'ember' };
+
+    const typeMeta = {
+      winter: {
+        name: 'Winterbeast',
+        emoji: '❄️',
+        blurb: 'Focused, protective, and resilient. You thrive in clarity and calm, plan ahead, and shield the vulnerable. Likely role: sentinel, tactician, or field commander for delicate ops in hostile terrain.'
+      },
+      sea: {
+        name: 'Seabeast',
+        emoji: '🌊',
+        blurb: 'Adaptable, charming, and strategic. You read people well, flow around obstacles, and excel at intel, negotiation, and misdirection. Likely role: spy, diplomat, or infiltration specialist.'
+      },
+      thunder: {
+        name: 'Thunderbeast',
+        emoji: '⚡',
+        blurb: 'Quick-thinking, inventive, and high-energy. You connect patterns fast and love puzzles and tech. Likely role: strategist, engineer, signal interception, or battlefield controller.'
+      },
+      bronze: {
+        name: 'Bronzebeast',
+        emoji: '🛡️',
+        blurb: 'Strong-willed, dependable, and unstoppable once you commit. You value grit and loyalty. Likely role: frontline guardian, breacher, or heavy support.'
+      },
+      ember: {
+        name: 'Emberbeast',
+        emoji: '🔥',
+        blurb: 'Bold, passionate, and decisive. You turn pressure into fuel and inspire others. Likely role: vanguard, expedition leader, or rapid-response ace.'
+      }
+    };
+
+    // The 20 quiz questions (from your world canon). Each option letter maps to a hybrid.
+    const questions = [
+      {
+        q: '1) Which environment makes you feel most at peace?',
+        options: {
+          a: 'Snowy mountains and frozen lakes',
+          b: 'Ocean shores or deep underwater',
+          c: 'Stormy skies or high-tech cities',
+          d: 'Open plains or rugged canyons',
+          e: 'Volcanic peaks or warm deserts'
+        }
+      },
+      {
+        q: '2) Pick a weapon or tool you’d master:',
+        options: {
+          a: 'Ice-forged blade',
+          b: 'Harpoon or trident',
+          c: 'Lightning staff or hacking device',
+          d: 'Warhammer or heavy shield',
+          e: 'Flaming sword or fire whip'
+        }
+      },
+      {
+        q: '3) Your ideal day off:',
+        options: {
+          a: 'Hiking in cold weather with hot cocoa after',
+          b: 'Swimming or sailing for hours',
+          c: 'Solving puzzles or coding a new program',
+          d: 'Physical training or competing in sports',
+          e: 'Relaxing near a campfire telling stories'
+        }
+      },
+      {
+        q: '4) Which animal do you feel most connected to?',
+        options: {
+          a: 'Arctic wolf',
+          b: 'Dolphin',
+          c: 'Hawk',
+          d: 'Bull',
+          e: 'Dragon'
+        }
+      },
+      {
+        q: '5) How do you react to danger?',
+        options: {
+          a: 'Face it head-on with precise planning',
+          b: 'Outsmart it with charm or diversion',
+          c: 'Outmaneuver it with speed and strategy',
+          d: 'Overpower it with sheer strength',
+          e: 'Burn through it with bold aggression'
+        }
+      },
+      {
+        q: '6) Which weakness sounds most like you?',
+        options: {
+          a: 'Can’t stand heat',
+          b: 'Don’t trust electricity or machines much',
+          c: 'Can’t sit still for long',
+          d: 'Stubborn and set in your ways',
+          e: 'Impulsive when angry'
+        }
+      },
+      {
+        q: '7) Which element do you feel drawn to?',
+        options: { a: 'Ice', b: 'Water', c: 'Lightning', d: 'Earth/Metal', e: 'Fire' }
+      },
+      {
+        q: '8) Which social role fits you best?',
+        options: {
+          a: 'Protector',
+          b: 'Negotiator/spy',
+          c: 'Inventor or strategist',
+          d: 'Warrior or guard',
+          e: 'Adventurer or leader'
+        }
+      },
+      {
+        q: '9) Which outfit would you wear to a party?',
+        options: {
+          a: 'Elegant winter coat and boots',
+          b: 'Flowing, shimmering fabrics',
+          c: 'Sleek modern clothes with tech accessories',
+          d: 'Simple but sturdy outfit',
+          e: 'Bold colors with gold or leather accents'
+        }
+      },
+      {
+        q: '10) Your favorite type of weather:',
+        options: { a: 'Snowfall', b: 'Gentle rain', c: 'Thunderstorms', d: 'Warm sunny day', e: 'Dry heat' }
+      },
+      {
+        q: '11) Which drink do you choose?',
+        options: { a: 'Hot chocolate', b: 'Iced tea', c: 'Energy drink', d: 'Protein shake', e: 'Spiced coffee' }
+      },
+      {
+        q: '12) How do you prefer to win an argument?',
+        options: { a: 'Calm logic', b: 'Smooth persuasion', c: 'Clever wordplay', d: 'Stubborn persistence', e: 'Passionate conviction' }
+      },
+      {
+        q: '13) Which hobby sounds best?',
+        options: { a: 'Ice skating', b: 'Surfing', c: 'Building gadgets', d: 'Weightlifting', e: 'Campfire cooking' }
+      },
+      {
+        q: '14) Which fear feels most relatable?',
+        options: { a: 'Being trapped in heat or fire', b: 'Being stranded far from water', c: 'Being disconnected or powerless', d: 'Being physically restrained', e: 'Being completely alone' }
+      },
+      {
+        q: '15) If you had a power, you’d use it to…',
+        options: { a: 'Defend those weaker than you', b: 'Help people secretly from the shadows', c: 'Revolutionize technology', d: 'Win battles and protect your group', e: 'Break free from limitations' }
+      },
+      {
+        q: '16) How do people usually describe you?',
+        options: { a: 'Focused and protective', b: 'Charming and adaptable', c: 'Energetic and witty', d: 'Determined and tough', e: 'Bold and passionate' }
+      },
+      {
+        q: '17) You’re most likely to…',
+        options: { a: 'Prepare for every possibility', b: 'Improvise in the moment', c: 'Jump in and figure it out on the way', d: 'Stick to a tried-and-true method', e: 'Take a big risk to succeed' }
+      },
+      {
+        q: '18) Your dream home would be…',
+        options: { a: 'A cabin in the snow', b: 'A villa on the coast', c: 'A smart home with cutting-edge tech', d: 'A ranch with wide open land', e: 'A mountainside fortress near lava flows' }
+      },
+      {
+        q: '19) Favorite type of movie:',
+        options: { a: 'Survival or arctic adventure', b: 'Mystery or ocean exploration', c: 'Sci-fi or cyberpunk thriller', d: 'Epic battles or gladiator stories', e: 'Fantasy with dragons and magic' }
+      },
+      {
+        q: '20) If you had to transform, which form would you prefer?',
+        options: { a: 'Fur, horns, claws — massive and cold-resistant', b: 'Tail, scales, and fins — aquatic power', c: 'Wings, storm aura, electric energy', d: 'Horns, hooves, unstoppable build', e: 'Wings, scales, fire breath' }
+      }
+    ];
+
+    // --- Render -------------------------------------------------------------
+    const form = document.getElementById('quizForm');
+
+    function renderQuestions() {
+      questions.forEach((item, idx) => {
+        const fieldset = document.createElement('fieldset');
+        const legend = document.createElement('legend');
+        legend.textContent = item.q;
+        fieldset.appendChild(legend);
+
+        Object.entries(item.options).forEach(([letter, text]) => {
+          const id = `q${idx+1}_${letter}`;
+          const label = document.createElement('label');
+          label.setAttribute('for', id);
+          label.style.display = 'block'; // just for readability, still no CSS file
+
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = `q${idx+1}`;
+          input.value = letter; // a/b/c/d/e
+          input.id = id;
+
+          label.appendChild(input);
+          label.appendChild(document.createTextNode(` ${text}`));
+          fieldset.appendChild(label);
+        });
+
+        form.appendChild(fieldset);
+      });
+    }
+
+    renderQuestions();
+
+    // --- Scoring ------------------------------------------------------------
+    function computeResults() {
+      const totals = { winter: 0, sea: 0, thunder: 0, bronze: 0, ember: 0 };
+      let answered = 0;
+
+      questions.forEach((_, idx) => {
+        const selected = form.querySelector(`input[name="q${idx+1}"]:checked`);
+        if (selected) {
+          answered++;
+          const letter = selected.value; // a-e
+          const type = letterMap[letter];
+          totals[type]++;
+        }
+      });
+
+      if (answered !== questions.length) {
+        alert('Please answer all 20 questions.');
+        return null;
+      }
+
+      // Convert to percentage out of 20
+      const entries = Object.entries(totals).map(([key, count]) => ({
+        key,
+        count,
+        percent: Math.round((count / questions.length) * 100)
+      }));
+
+      // Sort by count desc, then name for stability
+      entries.sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
+
+      return entries;
+    }
+
+    // --- UI Handlers --------------------------------------------------------
+    const submitBtn = document.getElementById('submitBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const resultsDiv = document.getElementById('results');
+
+    submitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const res = computeResults();
+      if (!res) return;
+
+      const top3 = res.slice(0, 3);
+
+      // Build results HTML
+      resultsDiv.innerHTML = '';
+      const h2 = document.createElement('h2');
+      h2.textContent = 'Your Top Matches';
+      resultsDiv.appendChild(h2);
+
+      top3.forEach((r, idx) => {
+        const meta = typeMeta[r.key];
+        const box = document.createElement('div');
+
+        const title = document.createElement('h3');
+        title.textContent = `${idx + 1}. ${meta.emoji} ${meta.name} — ${r.percent}%`;
+        box.appendChild(title);
+
+        const p = document.createElement('p');
+        p.textContent = meta.blurb;
+        box.appendChild(p);
+
+        resultsDiv.appendChild(box);
+      });
+
+      // Show full breakdown too
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = 'See full breakdown';
+      details.appendChild(summary);
+
+      const ul = document.createElement('ul');
+      res.forEach((r) => {
+        const li = document.createElement('li');
+        li.textContent = `${typeMeta[r.key].name}: ${r.count}/20 (${r.percent}%)`;
+        ul.appendChild(li);
+      });
+      details.appendChild(ul);
+
+      resultsDiv.appendChild(details);
+
+      const note = document.createElement('p');
+      note.innerHTML = '<em>Note:</em> Ties are possible. If two types are close, you might be a cross-trait hybrid—use the blurbs to decide which role fits you best.';
+      resultsDiv.appendChild(note);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      form.reset();
+      resultsDiv.innerHTML = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
 </body>
 </html>
