@@ -269,20 +269,22 @@
       h2.textContent = 'Your Top Matches';
       resultsDiv.appendChild(h2);
 
-      top3.forEach((r, idx) => {
-        const meta = typeMeta[r.key];
-        const box = document.createElement('div');
+    top3.forEach((r, idx) => {
+  const meta = typeMeta[r.key];
+  const box = document.createElement('div');
+  box.dataset.type = r.key; // <-- this goes here
 
-        const title = document.createElement('h3');
-        title.textContent = `${idx + 1}. ${meta.emoji} ${meta.name} — ${r.percent}%`;
-        box.appendChild(title);
+  const title = document.createElement('h3');
+  title.textContent = `${idx + 1}. ${meta.emoji} ${meta.name} — ${r.percent}%`;
+  box.appendChild(title);
 
-        const p = document.createElement('p');
-        p.textContent = meta.blurb;
-        box.appendChild(p);
+  const p = document.createElement('p');
+  p.textContent = meta.blurb;
+  box.appendChild(p);
 
-        resultsDiv.appendChild(box);
-      });
+  resultsDiv.appendChild(box);
+});
+
 
       // Show full breakdown too
       const details = document.createElement('details');
